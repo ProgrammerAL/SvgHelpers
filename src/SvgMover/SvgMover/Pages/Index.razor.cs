@@ -10,6 +10,8 @@ using BlazorMonaco.Editor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
+using ProgrammerAl.SvgMover.SvgModifyUtilities;
+
 namespace ProgrammerAl.SvgMover.Pages;
 
 public partial class Index : ComponentBase
@@ -117,8 +119,6 @@ public partial class Index : ComponentBase
             yAmount = 0;
         }
 
-        
-
-        return svgText;
+        return SvgMoveUtility.MoveAllElements(svgText, xAmount, yAmount);
     }
 }
