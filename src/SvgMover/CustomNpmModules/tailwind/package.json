@@ -1,0 +1,17 @@
+{
+    "name": "tailwind",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "publish": "npm install && npm run build-prod",
+        "build": "npm run build-prod",
+        "build-prod": "npx tailwindcss -i src/input.css -o ../../ProgrammerAl.Site/wwwroot/css/custom-modules/tailwindcss.css --minify",
+        "build-dev": "npx tailwindcss -i src/input.css -o ../../ProgrammerAl.Site/wwwroot/css/custom-modules/tailwindcss.css",
+        "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+        "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
+    },
+    "author": "Al Rodriguez",
+    "devDependencies": {
+        "tailwindcss": "^3.2.4"
+    }
+}

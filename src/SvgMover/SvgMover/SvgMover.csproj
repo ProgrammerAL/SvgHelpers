@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsAsErrors />
+        <Nullable>enable</Nullable>
+        <AssemblyName>ProgrammerAl.SvgMover</AssemblyName>
+        <RootNamespace>ProgrammerAl.SvgMover</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.4" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\css\custom-modules\" />
+    </ItemGroup>
+
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)'=='DEBUG'">
+        <Exec Command="npm run build-dev --prefix $(ProjectDir)/../CustomNpmModules/tailwind" />
+    </Target>
+
+</Project>
