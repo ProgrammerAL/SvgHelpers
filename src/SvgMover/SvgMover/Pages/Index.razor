@@ -1,21 +1,40 @@
 ﻿@page "/"
 
-<div class="flex flex-col gap-8">
-    <textarea @bind=@OriginalText
-        class="border border-black border-2" />
+@using BlazorMonaco
+@using BlazorMonaco.Editor
+@using BlazorMonaco.Languages
 
+
+<div class="flex flex-col gap-4 m-5">
     <div class="flex gap-2">
-        <label for="xInput">X:</label>
-        <input id="xInput" type="number" class="min-w-12" />
-
-        <label for="yInput" class="ml-8">Y:</label>
-        <input id="yInput" type="number" class="min-w-12" />
-
-        <button type="button" @onclick=MoveSvg
-            class="ml-8 min-w-16 min-h-16">Modify Elements</button>
+        <p>X:</p>
+        <input id="xInput" type="number" @bind=XAmount
+               class="border border-black min-w-16 p-2" />
+    </div>
+    <div class="flex gap-2">
+        <p>Y:</p>
+        <input id="xInput" type="number" @bind=YAmount
+               class="border border-black min-w-16 p-2" />
     </div>
 
-    <textarea @bind=@ModifiedText
-              class="border border-black border-2" />
-
+    <button type="button" @onclick=MoveSvgAsync
+            class="border border-black bg-green-800 min-h-12 text-gray-200">
+        Modify Elements
+    </button>
 </div>
+
+<StandaloneDiffEditor @ref="_diffEditor"
+                      Id="diff-editor"
+                      ConstructionOptions="DiffEditorConstructionOptions"
+                      OnDidInit="EditorOnDidInit" />
+
+@* <StandaloneCodeEditor @ref="_originalEditor"
+                      Id="original-editor"
+                      ConstructionOptions="EditorConstructionOptions"
+                      OnEd
+                      />
+
+<StandaloneCodeEditor @ref="_mondifiedEditor"
+                      Id="modified-editor"
+                      ConstructionOptions="EditorConstructionOptions" />
+ *@

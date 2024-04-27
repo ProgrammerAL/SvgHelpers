@@ -15,7 +15,6 @@
 
     <link href="css/custom-modules/tailwindcss.css" rel="stylesheet">
     <link href="css/app.css" rel="stylesheet">
-    <link href="css/post.css" rel="stylesheet">
 
     <style>
         .spinner {
@@ -88,6 +87,11 @@
             <div class="rect5"></div>
         </div>
     </div>
+
+    <!--Load required scripts for the Monaco editor-->
+    <script src="_content/BlazorMonaco/jsInterop.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
 
     <!--Load from Brotli compressed files-->
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
