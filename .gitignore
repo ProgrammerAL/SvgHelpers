@@ -261,10 +261,7 @@ paket-files/
 __pycache__/
 *.pyc
 
-**/ProgrammerAl.Site/dist
-**/ProgrammerAl.Site.Content/BlogPosts/*.html
-**/ProgrammerAl.Site.Content/BlogPosts.json
-**/ProgrammerAl.Site.Content/RecentData.json
-**/ProgrammerAl.Site/wwwroot/sitemap.xml
+**/SvgMover/dist
+**/SvgMover/wwwroot/sitemap.xml
 
-**/ProgrammerAl.Site/wwwroot/css/custom-modules/*.css
+**/SvgMover/wwwroot/css/custom-modules/*.css
