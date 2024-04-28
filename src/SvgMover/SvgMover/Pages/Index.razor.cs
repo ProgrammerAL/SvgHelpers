@@ -63,29 +63,10 @@ public partial class Index : ComponentBase
         var textValue = await BlazorMonaco.Editor.Global.GetModel(JsRuntime, textModelName);
         if (textValue is null)
         {
-            textValue = await BlazorMonaco.Editor.Global.CreateModel(JsRuntime, DefaultSvgText, "javascript", textModelName);
+            textValue = await BlazorMonaco.Editor.Global.CreateModel(JsRuntime, DefaultSvgText, language: "xml", textModelName);
         }
 
         return textValue;
-    }
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            //InDiffEditor = true,
-            //OriginalEditable = true,
-            Language = "xml",
-            GlyphMargin = true,
-            FormatOnPaste = false,
-            Value =
-"""
-<svg xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
-</svg>
-"""
-        };
     }
 
     private async Task MoveSvgAsync()
@@ -93,7 +74,7 @@ public partial class Index : ComponentBase
         var originalModel = await GetOrCreateTextModelAsync(EditorOriginalTextModel);
         var modifiedModel = await GetOrCreateTextModelAsync(EditorModifiedTextModel);
 
-        var originalText = await originalModel.GetValue(eol: null, preserveBOM: null);
+        var originalText = await originalModel.GetValue(eol: EndOfLinePreference.TextDefined, preserveBOM: false);
         var modifiedText = MoveSvgElements(originalText);
 
         await modifiedModel.SetValue(modifiedText);
