@@ -16,9 +16,6 @@ namespace ProgrammerAl.SvgMover.Pages;
 
 public partial class Index : ComponentBase
 {
-    //private StandaloneCodeEditor _originalEditor = null!;
-    //private StandaloneCodeEditor _mondifiedEditor = null!;
-
     private const string EditorOriginalTextModel = "editor-original-text-model";
     private const string EditorModifiedTextModel = "editor-modified-text-model";
 

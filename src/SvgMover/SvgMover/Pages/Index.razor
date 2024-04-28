@@ -4,7 +4,6 @@
 @using BlazorMonaco.Editor
 @using BlazorMonaco.Languages
 
-
 <div class="flex flex-col gap-4 m-5">
     <div class="flex gap-2">
         <p class="mt-2">X:</p>
@@ -23,7 +22,12 @@
     </button>
 </div>
 
-<StandaloneDiffEditor @ref="_diffEditor"
+<div class="flex flex-row justify-between px-4">
+    <p class="text-lg font-semibold">Original</p>
+    <p class="text-lg font-semibold">Modified</p>
+</div>
+
+ <StandaloneDiffEditor @ref="_diffEditor"
                       Id="diff-editor"
                       ConstructionOptions="DiffEditorConstructionOptions"
                       OnDidInit="EditorOnDidInit" />
