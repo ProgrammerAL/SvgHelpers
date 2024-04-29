@@ -26,11 +26,13 @@ public partial class Index : ComponentBase
 </svg>
 """;
 
-
     private StandaloneDiffEditor _diffEditor = null!;
 
     [Inject, NotNull]
     private IJSRuntime? JsRuntime { get; set; }
+
+    [Inject, NotNull]
+    private ISiteLogger? Logger { get; set; }
 
     private string XAmount { get; set; } = "0";
     private string YAmount { get; set; } = "0";
@@ -97,6 +99,8 @@ public partial class Index : ComponentBase
             yAmount = 0;
         }
 
-        return SvgMoveUtility.MoveAllElements(svgText, xAmount, yAmount);
+        var mover = new SvgMoverUtil(svgText, xAmount, yAmount, Logger);
+
+        return mover.MoveAllElements();
     }
 }

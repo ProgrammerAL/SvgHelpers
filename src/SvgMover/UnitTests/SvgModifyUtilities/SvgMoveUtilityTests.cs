@@ -1,5 +1,6 @@
 ﻿using System;
 
+using ProgrammerAl.SvgMover;
 using ProgrammerAl.SvgMover.SvgModifyUtilities;
 
 using Shouldly;
@@ -22,7 +23,8 @@ public class SvgMoveUtilityTests
     [InlineData("<rect x=\"10\"></rect><circle x=\"10\"></circle>", "<rect x=\"15\"></rect><circle x=\"15\"></circle>", 5)]
     public void WhenMovingX_AssertValuesMoved(string original, string expected, int moveAmount)
     {
-        var modified = SvgMoveUtility.MoveAllElements(original, xMove: moveAmount, yMove: 0);
+        var mover = new SvgMoverUtil(original, XMove: moveAmount, YMove: 0, Logger: new SiteLogger());
+        var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
 
@@ -38,7 +40,8 @@ public class SvgMoveUtilityTests
     [InlineData("<rect y=\"10\"></rect><circle y=\"10\"></circle>", "<rect y=\"15\"></rect><circle y=\"15\"></circle>", 5)]
     public void WhenMovingY_AssertValuesMoved(string original, string expected, int moveAmount)
     {
-        var modified = SvgMoveUtility.MoveAllElements(original, xMove: 0, yMove: moveAmount);
+        var mover = new SvgMoverUtil(original, XMove: moveAmount, YMove: 0, Logger: new SiteLogger());
+        var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
 
