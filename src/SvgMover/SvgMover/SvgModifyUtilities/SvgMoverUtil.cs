@@ -3,6 +3,8 @@ using System.Numerics;
 using System.Xml;
 using System.Xml.Linq;
 
+using Microsoft.Extensions.Primitives;
+
 using Svg;
 
 namespace ProgrammerAl.SvgMover.SvgModifyUtilities;
@@ -15,7 +17,7 @@ public class SvgMoverUtil
 {
     private record AttributeModification(string AttributeName, int ModifyAmount);
 
-    private readonly ImmutableDictionary<string, ImmutableArray<AttributeModification>> _modifications;
+    private readonly ImmutableDictionary<string, ImmutableArray<AttributeModification>> _simpleElementModifications;
 
     public SvgMoverUtil(string svgText, int xMove, int yMove, IModificationLogger logger)
     {
@@ -24,7 +26,7 @@ public class SvgMoverUtil
         YMove = yMove;
         Logger = logger;
 
-        _modifications = new Dictionary<string, ImmutableArray<AttributeModification>>(StringComparer.OrdinalIgnoreCase)
+        _simpleElementModifications = new Dictionary<string, ImmutableArray<AttributeModification>>(StringComparer.OrdinalIgnoreCase)
         {
             {
                 "rect",
@@ -38,6 +40,36 @@ public class SvgMoverUtil
                 [
                     new AttributeModification("cx", XMove),
                     new AttributeModification("cy", YMove)
+                ]
+            },
+            {
+                "ellipse",
+                [
+                    new AttributeModification("cx", XMove),
+                    new AttributeModification("cy", YMove)
+                ]
+            },
+            {
+                "text",
+                [
+                    new AttributeModification("x", XMove),
+                    new AttributeModification("y", YMove)
+                ]
+            },
+            {
+                "tspan",
+                [
+                    new AttributeModification("x", XMove),
+                    new AttributeModification("y", YMove)
+                ]
+            },
+            {
+                "line",
+                [
+                    new AttributeModification("x1", XMove),
+                    new AttributeModification("x2", XMove),
+                    new AttributeModification("y1", YMove),
+                    new AttributeModification("y2", YMove),
                 ]
             },
         }.ToImmutableDictionary();
@@ -92,13 +124,21 @@ public class SvgMoverUtil
             var nameLength = elementNameEndIndex - elementStartIndex - 1;
             var elementName = ModifiedSvgText.Substring(elementStartIndex + 1, nameLength);
 
-            if (_modifications.TryGetValue(elementName, out var modifications))
+            //TODO:
+            //  Polygon and Polyline (pretty sure can be same method, both use points attribute)
+            //  Path
+            if (_simpleElementModifications.TryGetValue(elementName, out var simpleModifications))
             {
-                MoveElementAttributes(elementName, elementNameEndIndex, modifications);
+                MoveSimpleElementAttributes(elementName, elementNameEndIndex, simpleModifications);
+            }
+            else if (string.Equals("path", elementName, StringComparison.OrdinalIgnoreCase))
+            {
+
+                MovePathElementAttributes(elementNameEndIndex);
             }
             else
             {
-                Logger.LogError($"Unhandled SVG XML element with name '{elementName}' at index '{elementStartIndex}'");
+                Logger.LogInfo($"Unhandled SVG XML element with name '{elementName}' at index '{elementStartIndex}'");
             }
 
             //Since we did some parsing, reset the index to right after the element name
@@ -109,10 +149,10 @@ public class SvgMoverUtil
         return ModifiedSvgText;
     }
 
-    private void MoveElementAttributes(string elementName, int attributesStartIndex, ImmutableArray<AttributeModification> modifications)
+    private void MoveSimpleElementAttributes(string elementName, int attributesStartIndex, ImmutableArray<AttributeModification> modifications)
     {
         var index = attributesStartIndex - 1;
-        var parseState = AttributeParseState.LookingForAttributeStart;
+        var parseState = SimpleElementAttributeParseState.LookingForAttributeStart;
         var attributeNameBuilder = new StringBuilder();
         var attributeValueBuilder = new StringBuilder();
         while (++index < ModifiedSvgText.Length)
@@ -123,14 +163,14 @@ public class SvgMoverUtil
                 //End of the element, we're done here
                 return;
             }
-            else if (parseState == AttributeParseState.FoundInvalidAttributeLookingForNextSpace)
+            else if (parseState == SimpleElementAttributeParseState.FoundInvalidAttributeLookingForNextSpace)
             {
                 if (!char.IsWhiteSpace(character))
                 {
                     continue;
                 }
             }
-            else if (parseState == AttributeParseState.LookingForAttributeStart)
+            else if (parseState == SimpleElementAttributeParseState.LookingForAttributeStart)
             {
                 if (char.IsWhiteSpace(character))
                 {
@@ -138,11 +178,11 @@ public class SvgMoverUtil
                 }
                 else
                 {
-                    parseState = AttributeParseState.ParsingName;
+                    parseState = SimpleElementAttributeParseState.ParsingName;
                     attributeNameBuilder.Append(character);
                 }
             }
-            else if (parseState == AttributeParseState.ParsingName)
+            else if (parseState == SimpleElementAttributeParseState.ParsingName)
             {
                 if (character == '=')
                 {
@@ -150,18 +190,18 @@ public class SvgMoverUtil
                     var attributeModifier = modifications.FirstOrDefault(x => string.Equals(x.AttributeName, attributeName, StringComparison.OrdinalIgnoreCase));
                     if (attributeModifier is null)
                     {
-                        parseState = AttributeParseState.FoundInvalidAttributeLookingForNextSpace;
+                        parseState = SimpleElementAttributeParseState.FoundInvalidAttributeLookingForNextSpace;
                         Logger.LogInfo($"Skipping attribute '{elementName}.{attributeName}' because there's no modification for it.");
                     }
                     else
                     {
-                        parseState = AttributeParseState.ParsingValueOpenQuote;
+                        parseState = SimpleElementAttributeParseState.ParsingValueOpenQuote;
                     }
                 }
                 else if (!char.IsLetter(character))
                 {
                     //Invalid character, skip this attribute
-                    parseState = AttributeParseState.FoundInvalidAttributeLookingForNextSpace;
+                    parseState = SimpleElementAttributeParseState.FoundInvalidAttributeLookingForNextSpace;
                     Logger.LogError($"Found an invalid character '{character}' in the attribute name for an element type of '{elementName}' at string index '{index}'");
 
                     attributeNameBuilder.Clear();
@@ -172,12 +212,12 @@ public class SvgMoverUtil
                     attributeNameBuilder.Append(character);
                 }
             }
-            else if (parseState == AttributeParseState.ParsingValueOpenQuote)
+            else if (parseState == SimpleElementAttributeParseState.ParsingValueOpenQuote)
             {
                 if (character != '"')
                 {
                     //Invalid character, skip this attribute
-                    parseState = AttributeParseState.FoundInvalidAttributeLookingForNextSpace;
+                    parseState = SimpleElementAttributeParseState.FoundInvalidAttributeLookingForNextSpace;
                     Logger.LogError($"Found an invalid character '{character}' for an element type of '{elementName}' at string index '{index}' when expecting to find an attribute opening double-quote");
 
                     attributeNameBuilder.Clear();
@@ -185,10 +225,10 @@ public class SvgMoverUtil
                 }
                 else
                 {
-                    parseState = AttributeParseState.ParsingValue;
+                    parseState = SimpleElementAttributeParseState.ParsingValue;
                 }
             }
-            else if (parseState == AttributeParseState.ParsingValue)
+            else if (parseState == SimpleElementAttributeParseState.ParsingValue)
             {
                 if (character == '"')
                 {
@@ -214,7 +254,7 @@ public class SvgMoverUtil
                         Logger.LogError($"Could not parse int value from attribute '{elementName}.{attributeName}' with string value '{attributeString}'");
                     }
 
-                    parseState = AttributeParseState.LookingForAttributeStart;
+                    parseState = SimpleElementAttributeParseState.LookingForAttributeStart;
                     attributeNameBuilder.Clear();
                     attributeValueBuilder.Clear();
                 }
@@ -226,19 +266,267 @@ public class SvgMoverUtil
         }
     }
 
-    //private void MoveElement(ParsedElementInfo elementInfo)
-    //{
-    //    if (string.Equals("rect", elementInfo.ElementName, StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        MoveRectangle(elementInfo);
-    //    }
-    //    else
-    //    {
-    //        Logger.Log($"Unhandled SVG XML element with name '{elementInfo.ElementName}' at index '{elementInfo.ElementStartIndex}'");
-    //    }
-    //}
+    private void MovePathElementAttributes(int attributesStartIndex)
+    {
+        var endElementIndex = ModifiedSvgText.IndexOf(">", attributesStartIndex);
+        var dAttributeStartIndex = ModifiedSvgText.IndexOf("d=\"", attributesStartIndex, StringComparison.OrdinalIgnoreCase);
 
-    private enum AttributeParseState
+        if (dAttributeStartIndex == -1)
+        {
+            Logger.LogInfo($"Path element at index {attributesStartIndex} does not have a 'd' attribute. Skipping.");
+            return;
+        }
+        else if (dAttributeStartIndex > endElementIndex)
+        {
+            //Found a 'd' attribute, but it's after the end of this element (for a different one), so don't modify anything here
+            Logger.LogInfo($"Path element at index {attributesStartIndex} does not have a 'd' attribute. Skipping.");
+            return;
+        }
+
+        var valueStartIndex = dAttributeStartIndex + 3; //Skip the 'd="' part
+        var dEndIndex = ModifiedSvgText.IndexOf("\"", valueStartIndex);
+        var dValue = ModifiedSvgText.Substring(valueStartIndex, dEndIndex - valueStartIndex);
+        var newDValueBuilder = new StringBuilder();
+
+        var dIndex = 0;
+        var initialCharacter = dValue[dIndex];
+        if (char.ToUpperInvariant(initialCharacter) != 'M')
+        {
+            Logger.LogInfo($"Path element at index {attributesStartIndex} does not start with 'M'. Skipping.");
+            return;
+        }
+        if (dValue[dIndex + 1] != ' ')
+        {
+            Logger.LogInfo($"Path element at index {attributesStartIndex} does not have a space after the initial 'M'. Skipping.");
+            return;
+        }
+
+        //d attribute has to start with 'M ' before numbers, so just do that check first
+        dIndex++;
+        newDValueBuilder.Append(initialCharacter);
+        newDValueBuilder.Append(' ');
+
+        bool IsStringAtEnd() => dIndex + 1 == dValue.Length;
+        bool IsNumberComplete(char character) => char.IsWhiteSpace(character) || character == '"' || IsStringAtEnd();
+        void AddSkippedCharacter(char character)
+        {
+            //Add the space that was skipped
+            if (!IsStringAtEnd())
+            {
+                newDValueBuilder.Append(character);
+            }
+        }
+
+        var parsedNumberBuilder = new StringBuilder();
+        var parseState = PathElementAttributeParseState.ParsingMX;
+        while (++dIndex < dValue.Length
+            && parseState != PathElementAttributeParseState.Invalid)
+        {
+            var character = dValue[dIndex];
+            //If we're looking at the final character in the string,
+            //  add it now and pretend it was added in the previous loop
+            //  This way the if-branch doesn't have to also check if it's the last character and add it for int processing
+            if (IsStringAtEnd())
+            {
+                parsedNumberBuilder.Append(character);
+            }
+
+            if (parseState == PathElementAttributeParseState.ParsingMX)
+            {
+                if (IsNumberComplete(character))
+                {
+                    parseState = PathElementAttributeParseState.ParsingMY;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + XMove;
+                        newDValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'M X' attribute with string value '{parsedNumberBuilder}'");
+                        newDValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PathElementAttributeParseState.ParsingMY)
+            {
+                if (IsNumberComplete(character))
+                {
+                    parseState = PathElementAttributeParseState.LookingForNextCommand;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + YMove;
+                        newDValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'M Y' attribute with string value '{parsedNumberBuilder}'");
+                        newDValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PathElementAttributeParseState.LookingForNextCommand)
+            {
+                if (!char.IsWhiteSpace(character))
+                {
+                    var upperCharacter = char.ToUpperInvariant(character);
+                    if (upperCharacter == 'L')
+                    {
+                        parseState = PathElementAttributeParseState.ParsingLX;
+                        dIndex++;//Skip the next character, which is a space
+                        newDValueBuilder.Append(character);
+                        newDValueBuilder.Append(' ');
+                    }
+                    else if (upperCharacter == 'V')
+                    {
+                        parseState = PathElementAttributeParseState.ParsingV;
+                        dIndex++;//Skip the next character, which is a space
+                        newDValueBuilder.Append(character);
+                        newDValueBuilder.Append(' ');
+                    }
+                    else if (upperCharacter == 'H')
+                    {
+                        parseState = PathElementAttributeParseState.ParsingH;
+                        dIndex++;//Skip the next character, which is a space
+                        newDValueBuilder.Append(character);
+                        newDValueBuilder.Append(' ');
+                    }
+                    else
+                    {
+                        Logger.LogError($"Found an unexpected character '{character}' after a 'M' command in a path element at index {attributesStartIndex}");
+                        parseState = PathElementAttributeParseState.Invalid;
+                    }
+                }
+            }
+            else if (parseState == PathElementAttributeParseState.ParsingLX)
+            {
+                if (IsNumberComplete(character))
+                {
+                    parseState = PathElementAttributeParseState.ParsingLY;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + XMove;
+                        newDValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'M L X' attribute with string value '{parsedNumberBuilder}'");
+                        newDValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PathElementAttributeParseState.ParsingLY)
+            {
+                if (IsNumberComplete(character))
+                {
+                    parseState = PathElementAttributeParseState.LookingForNextCommand;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + YMove;
+                        newDValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'M L Y' attribute with string value '{parsedNumberBuilder}'");
+                        newDValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PathElementAttributeParseState.ParsingV)
+            {
+                if (IsNumberComplete(character))
+                {
+                    parseState = PathElementAttributeParseState.LookingForNextCommand;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + YMove;
+                        newDValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'M V' attribute with string value '{parsedNumberBuilder}'");
+                        newDValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PathElementAttributeParseState.ParsingH)
+            {
+                if (IsNumberComplete(character))
+                {
+                    parseState = PathElementAttributeParseState.LookingForNextCommand;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + XMove;
+                        newDValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'M H' attribute with string value '{parsedNumberBuilder}'");
+                        newDValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+        }
+
+        if (parseState != PathElementAttributeParseState.Invalid)
+        {
+            var newDString = newDValueBuilder.ToString();
+            ModifiedSvgText = ModifiedSvgText
+                                .Remove(valueStartIndex, dEndIndex - valueStartIndex)
+                                .Insert(valueStartIndex, newDString);
+        }
+    }
+
+
+    private enum SimpleElementAttributeParseState
     {
         LookingForAttributeStart,
         ParsingName,
@@ -247,123 +535,15 @@ public class SvgMoverUtil
         FoundInvalidAttributeLookingForNextSpace,
     }
 
-    private static string MoveElement(string searchPattern, string svgText, int moveAmount)
+    private enum PathElementAttributeParseState
     {
-        int startIndex = 0;
-        while ((startIndex = svgText.IndexOf(searchPattern, startIndex, StringComparison.OrdinalIgnoreCase)) > 0)
-        {
-            var startNumberIndex = startIndex + searchPattern.Length;
-            var preStartCharacter = svgText[startIndex - 1];
-            if (char.IsWhiteSpace(preStartCharacter))
-            {
-                var endIndex = svgText.IndexOf("\"", startNumberIndex);
-                if (endIndex > 0)
-                {
-                    var textLength = endIndex - startNumberIndex;
-                    var numberText = svgText.Substring(startNumberIndex, textLength);
-                    if (int.TryParse(numberText, out var number))
-                    {
-                        var newNumber = number + moveAmount;
-                        svgText = svgText.Remove(startNumberIndex, textLength);
-                        svgText = svgText.Insert(startNumberIndex, newNumber.ToString());
-                    }
-                }
-            }
-
-            //Move the start index 1 higher so we don't find the same element again on the next search
-            startIndex++;
-        }
-
-        return svgText;
-    }
-
-
-
-
-
-
-
-    private void MoveSvgAllElements(IEnumerable<XElement> elements)
-    {
-        foreach (var element in elements)
-        {
-            if (element is null)
-            {
-                continue;
-            }
-
-            //Recursive so we get all elemets in the list
-            if (element.HasElements)
-            {
-                MoveSvgAllElements(elements.Elements());
-            }
-
-            if (string.Equals(element.Name.LocalName, "rect", StringComparison.OrdinalIgnoreCase))
-            {
-                MoveRectangle(element);
-            }
-            //else if (element is SvgCircle circle)
-            //{
-            //    MoveCircle(circle);
-            //}
-            //else if (element is SvgPath path)
-            //{
-            //    MovePath(path);
-            //}
-            //else if (element is SvgEllipse ellipse)
-            //{
-            //    MoveEllipse(ellipse);
-            //}
-            else
-            {
-                Logger.LogError($"Unhandled SVG XML element with name {element.Name.LocalName}");
-            }
-        }
-    }
-
-    private void MoveEllipse(SvgEllipse item)
-    {
-        var newX = item.CenterX.Value + XMove;
-        item.CenterX = new SvgUnit(item.CenterX.Type, newX);
-
-        var newY = item.CenterY.Value + YMove;
-        item.CenterY = new SvgUnit(item.CenterY.Type, newY);
-    }
-
-    private void MovePath(SvgPath item)
-    {
-        foreach (var pathItem in item.PathData)
-        {
-            var newX = pathItem.End.X + XMove;
-            var newY = pathItem.End.Y + YMove;
-            pathItem.End = new System.Drawing.PointF(newX, newY);
-        }
-    }
-
-    private void MoveCircle(SvgCircle item)
-    {
-        var newX = item.CenterX.Value + XMove;
-        item.CenterX = new SvgUnit(item.CenterX.Type, newX);
-
-        var newY = item.CenterY.Value + YMove;
-        item.CenterY = new SvgUnit(item.CenterY.Type, newY);
-    }
-
-    private void MoveRectangle(XElement element)
-    {
-        var xElm = element.Attributes().FirstOrDefault(x => string.Equals(x.Name.LocalName, "x", StringComparison.OrdinalIgnoreCase));
-        var yElm = element.Attributes().FirstOrDefault(x => string.Equals(x.Name.LocalName, "y", StringComparison.OrdinalIgnoreCase));
-
-        UpdateElmValue(xElm, XMove);
-        UpdateElmValue(yElm, YMove);
-    }
-
-    private void UpdateElmValue(XAttribute? attr, int modifyValue)
-    {
-        if (int.TryParse(attr?.Value, out var attrValue))
-        {
-            var newValue = attrValue + modifyValue;
-            attr.SetValue(newValue.ToString());
-        }
+        ParsingMX,
+        ParsingMY,
+        ParsingLX,
+        ParsingLY,
+        ParsingH,
+        ParsingV,
+        LookingForNextCommand,
+        Invalid
     }
 }
