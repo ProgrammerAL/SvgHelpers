@@ -53,4 +53,14 @@ public class SvgMoveUtilityTests
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
+
+    [Theory]
+    [InlineData("<polygon points=\"0,100 55,25 -50,75 100,0\" />", "<polygon points=\"5,110 60,35 -45,85 105,10\" />", 5, 10)]
+    [InlineData("<polyline points=\"0,100 55,25 -50,75 100,0\" />", "<polyline points=\"5,110 60,35 -45,85 105,10\" />", 5, 10)]
+    public void WhenMovingPolyEement_AssertValuesMoved(string original, string expected, int xMove, int yMove)
+    {
+        var mover = new SvgMoverUtil(original, xMove: xMove, yMove: yMove, logger: new ModificationLogger());
+        var modified = mover.MoveAllElements();
+        modified.ShouldBe(expected);
+    }
 }

@@ -133,12 +133,16 @@ public class SvgMoverUtil
             }
             else if (string.Equals("path", elementName, StringComparison.OrdinalIgnoreCase))
             {
-
                 MovePathElementAttributes(elementNameEndIndex);
+            }
+            else if (string.Equals("polygon", elementName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals("polyline", elementName, StringComparison.OrdinalIgnoreCase))
+            {
+                MovePolyElementAttributes(elementNameEndIndex);
             }
             else
             {
-                Logger.LogInfo($"Unhandled SVG XML element with name '{elementName}' at index '{elementStartIndex}'");
+                Logger.LogInfo($"Skipping SVG XML element with name '{elementName}' at index '{elementStartIndex}'");
             }
 
             //Since we did some parsing, reset the index to right after the element name
@@ -525,6 +529,120 @@ public class SvgMoverUtil
         }
     }
 
+    private void MovePolyElementAttributes(int attributesStartIndex)
+    {
+        var endElementIndex = ModifiedSvgText.IndexOf(">", attributesStartIndex);
+        var pointsAttributeStartIndex = ModifiedSvgText.IndexOf("points=\"", attributesStartIndex, StringComparison.OrdinalIgnoreCase);
+
+        if (pointsAttributeStartIndex == -1)
+        {
+            Logger.LogInfo($"Path element at index {attributesStartIndex} does not have a 'points' attribute. Skipping.");
+            return;
+        }
+        else if (pointsAttributeStartIndex > endElementIndex)
+        {
+            //Found a 'points' attribute in the string, but it's after the end of this element (for a different one), so don't modify anything here
+            Logger.LogInfo($"Path element at index {attributesStartIndex} does not have a 'points' attribute. Skipping.");
+            return;
+        }
+
+        var valueStartIndex = pointsAttributeStartIndex + 8; //Skip the 'points="' part
+        var pointsEndIndex = ModifiedSvgText.IndexOf("\"", valueStartIndex);
+        var pointsValue = ModifiedSvgText.Substring(valueStartIndex, pointsEndIndex - valueStartIndex);
+        var newPointsValueBuilder = new StringBuilder();
+
+        var index = -1;
+
+        bool IsStringAtEnd() => index + 1 == pointsValue.Length;
+        bool IsXNumberComplete(char character) => character == ',';
+        bool IsYNumberComplete(char character) => char.IsWhiteSpace(character) || character == '"' || IsStringAtEnd();
+        void AddSkippedCharacter(char character)
+        {
+            //Add the space that was skipped
+            if (!IsStringAtEnd())
+            {
+                newPointsValueBuilder.Append(character);
+            }
+        }
+
+        var parsedNumberBuilder = new StringBuilder();
+        var parseState = PolyElementAttributeParseState.ParsingX;
+        while (++index < pointsValue.Length)
+        {
+            var character = pointsValue[index];
+            //If we're looking at the final character in the string,
+            //  add it now and pretend it was added in the previous loop
+            //  This way the if-branch doesn't have to also check if it's the last character and add it for int processing
+            if (IsStringAtEnd())
+            {
+                parsedNumberBuilder.Append(character);
+            }
+
+            if (parseState == PolyElementAttributeParseState.ParsingX)
+            {
+                if (IsXNumberComplete(character))
+                {
+                    parseState = PolyElementAttributeParseState.ParsingY;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + XMove;
+                        newPointsValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'Points X' attribute with string value '{parsedNumberBuilder}'");
+                        newPointsValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PolyElementAttributeParseState.ParsingY)
+            {
+                if (IsYNumberComplete(character))
+                {
+                    parseState = PolyElementAttributeParseState.LookingForNextPointStart;
+
+                    if (int.TryParse(parsedNumberBuilder.ToString(), out var number))
+                    {
+                        var newValue = number + YMove;
+                        newPointsValueBuilder.Append(newValue);
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from 'Points Y' attribute with string value '{parsedNumberBuilder}'");
+                        newPointsValueBuilder.Append(parsedNumberBuilder.ToString());
+                    }
+
+                    AddSkippedCharacter(character);
+                    parsedNumberBuilder.Clear();
+                }
+                else
+                {
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+            else if (parseState == PolyElementAttributeParseState.LookingForNextPointStart)
+            {
+                if (!char.IsWhiteSpace(character))
+                {
+                    parseState = PolyElementAttributeParseState.ParsingX;
+                    parsedNumberBuilder.Append(character);
+                }
+            }
+        }
+
+        var newPointsString = newPointsValueBuilder.ToString();
+        ModifiedSvgText = ModifiedSvgText
+                            .Remove(valueStartIndex, pointsEndIndex - valueStartIndex)
+                            .Insert(valueStartIndex, newPointsString);
+    }
 
     private enum SimpleElementAttributeParseState
     {
@@ -545,5 +663,12 @@ public class SvgMoverUtil
         ParsingV,
         LookingForNextCommand,
         Invalid
+    }
+
+    private enum PolyElementAttributeParseState
+    {
+        ParsingX,
+        ParsingY,
+        LookingForNextPointStart,
     }
 }
