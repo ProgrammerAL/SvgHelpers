@@ -1,8 +1,7 @@
 ﻿using System.IO;
+using System.Numerics;
 using System.Xml;
 using System.Xml.Linq;
-
-using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 using Svg;
 
@@ -12,51 +11,240 @@ namespace ProgrammerAl.SvgMover.SvgModifyUtilities;
 /// Custom logic to move elements inside an SVG string
 /// This has to use custom logic because the input string may be an invalid SVG string, for example just a partial image the user will copy/paste back into their SVG file
 /// </summary>
-public class SvgMoverUtil(string SvgText, int XMove, int YMove, ISiteLogger Logger)
+public class SvgMoverUtil
 {
-    private record ParsedElementInfo(
-        string ElementName,
-        int ElementStartIndex,
-        int ElementEndIndex,
-        ImmutableArray<ParsedElementInfo.ParsedAttributeInfo> Attributes,
-        bool IsEndElement)
+    private record AttributeModification(string AttributeName, int ModifyAmount);
+
+    private readonly ImmutableDictionary<string, ImmutableArray<AttributeModification>> _modifications;
+
+    public SvgMoverUtil(string svgText, int xMove, int yMove, IModificationLogger logger)
     {
-        public record ParsedAttributeInfo(string Name, string Value, int ValueStartIndex, int ValueEndIndex)
+        OriginalSvgText = svgText;
+        XMove = xMove;
+        YMove = yMove;
+        Logger = logger;
+
+        _modifications = new Dictionary<string, ImmutableArray<AttributeModification>>(StringComparer.OrdinalIgnoreCase)
         {
-            public bool TryParseAttributeValue(out int outValue) => int.TryParse(Value, out outValue);
-        }
+            {
+                "rect",
+                [
+                    new AttributeModification("x", XMove),
+                    new AttributeModification("y", YMove)
+                ]
+            },
+            {
+                "circle",
+                [
+                    new AttributeModification("cx", XMove),
+                    new AttributeModification("cy", YMove)
+                ]
+            },
+        }.ToImmutableDictionary();
     }
 
-    private const string XEqualsStartPattern = "x=\"";
-    private const string YEqualsStartPattern = "y=\"";
+    public string OriginalSvgText { get; }
+    public int XMove { get; }
+    public int YMove { get; }
+    public IModificationLogger Logger { get; }
+
+    public string ModifiedSvgText { get; private set; } = string.Empty;
 
     public string MoveAllElements()
     {
-        var elementStartIndex = -1;
+        ModifiedSvgText = OriginalSvgText;
+        var elementStartIndex = 0;
 
-        while ((elementStartIndex = SvgText.IndexOf("<")) > -1)
+        while ((elementStartIndex = ModifiedSvgText.IndexOf("<", elementStartIndex)) > -1)
         {
-            var elementEndIndex = SvgText.IndexOf(">", elementStartIndex);
+            var elementEndIndex = ModifiedSvgText.IndexOf(">", elementStartIndex);
             if (elementEndIndex == -1)
             {
                 //Invalid string, just move on
-                Logger.Log($"Found an element that does not have a closing angle backet (>). Skipping it.");
+                Logger.LogError($"Found an element that does not have a closing angle backet (>). Skipping it.");
+                elementStartIndex++;
+                continue;
+            }
+            else if (ModifiedSvgText.Length < elementStartIndex + 1)
+            {
+                //At the end of the string, no more elements to parse
+                elementStartIndex++;
+                continue;
+            }
+            else if (ModifiedSvgText[elementStartIndex + 1] == '/')
+            {
+                //A closing element, skip it
+                elementStartIndex++;
+                continue;
             }
 
-            var elementLength = elementEndIndex - elementStartIndex;
-            var elementString = SvgText.Substring(elementStartIndex, elementLength);
-            var elementInfo = ParseElementInfo(elementString);
+            //Full length of the element, including the start and end tags
+            var elementLength = elementEndIndex - elementStartIndex + 1;
+            //var elementString = ModifiedSvgText.Substring(elementStartIndex, elementLength);
+
+            var elementNameEndIndex = ModifiedSvgText.IndexOf(" ", elementStartIndex, StringComparison.OrdinalIgnoreCase);
+            if (elementNameEndIndex == -1)
+            {
+                //It's possible the element doesn't have any attributes, so we need to find the end of the element name
+                elementNameEndIndex = ModifiedSvgText.IndexOf(">", elementStartIndex, StringComparison.OrdinalIgnoreCase);
+            }
+
+            var nameLength = elementNameEndIndex - elementStartIndex - 1;
+            var elementName = ModifiedSvgText.Substring(elementStartIndex + 1, nameLength);
+
+            if (_modifications.TryGetValue(elementName, out var modifications))
+            {
+                MoveElementAttributes(elementName, elementNameEndIndex, modifications);
+            }
+            else
+            {
+                Logger.LogError($"Unhandled SVG XML element with name '{elementName}' at index '{elementStartIndex}'");
+            }
+
+            //Since we did some parsing, reset the index to right after the element name
+            //  Whatever we change is after the name, and the next iteration will look for the start of the next element, so it wil skip the attributes we edited
+            elementStartIndex = elementNameEndIndex + 1;
         }
 
-        svgText = MoveElement(XEqualsStartPattern, svgText, xMove);
-        svgText = MoveElement(YEqualsStartPattern, svgText, yMove);
-
-        return svgText;
+        return ModifiedSvgText;
     }
 
-    private ParsedElementInfo ParseElementInfo(string elementString)
+    private void MoveElementAttributes(string elementName, int attributesStartIndex, ImmutableArray<AttributeModification> modifications)
     {
-        return 1;
+        var index = attributesStartIndex - 1;
+        var parseState = AttributeParseState.LookingForAttributeStart;
+        var attributeNameBuilder = new StringBuilder();
+        var attributeValueBuilder = new StringBuilder();
+        while (++index < ModifiedSvgText.Length)
+        {
+            var character = ModifiedSvgText[index];
+            if (character == '>')
+            {
+                //End of the element, we're done here
+                return;
+            }
+            else if (parseState == AttributeParseState.FoundInvalidAttributeLookingForNextSpace)
+            {
+                if (!char.IsWhiteSpace(character))
+                {
+                    continue;
+                }
+            }
+            else if (parseState == AttributeParseState.LookingForAttributeStart)
+            {
+                if (char.IsWhiteSpace(character))
+                {
+                    continue;
+                }
+                else
+                {
+                    parseState = AttributeParseState.ParsingName;
+                    attributeNameBuilder.Append(character);
+                }
+            }
+            else if (parseState == AttributeParseState.ParsingName)
+            {
+                if (character == '=')
+                {
+                    var attributeName = attributeNameBuilder.ToString();
+                    var attributeModifier = modifications.FirstOrDefault(x => string.Equals(x.AttributeName, attributeName, StringComparison.OrdinalIgnoreCase));
+                    if (attributeModifier is null)
+                    {
+                        parseState = AttributeParseState.FoundInvalidAttributeLookingForNextSpace;
+                        Logger.LogInfo($"Skipping attribute '{elementName}.{attributeName}' because there's no modification for it.");
+                    }
+                    else
+                    {
+                        parseState = AttributeParseState.ParsingValueOpenQuote;
+                    }
+                }
+                else if (!char.IsLetter(character))
+                {
+                    //Invalid character, skip this attribute
+                    parseState = AttributeParseState.FoundInvalidAttributeLookingForNextSpace;
+                    Logger.LogError($"Found an invalid character '{character}' in the attribute name for an element type of '{elementName}' at string index '{index}'");
+
+                    attributeNameBuilder.Clear();
+                    attributeValueBuilder.Clear();
+                }
+                else
+                {
+                    attributeNameBuilder.Append(character);
+                }
+            }
+            else if (parseState == AttributeParseState.ParsingValueOpenQuote)
+            {
+                if (character != '"')
+                {
+                    //Invalid character, skip this attribute
+                    parseState = AttributeParseState.FoundInvalidAttributeLookingForNextSpace;
+                    Logger.LogError($"Found an invalid character '{character}' for an element type of '{elementName}' at string index '{index}' when expecting to find an attribute opening double-quote");
+
+                    attributeNameBuilder.Clear();
+                    attributeValueBuilder.Clear();
+                }
+                else
+                {
+                    parseState = AttributeParseState.ParsingValue;
+                }
+            }
+            else if (parseState == AttributeParseState.ParsingValue)
+            {
+                if (character == '"')
+                {
+                    var attributeName = attributeNameBuilder.ToString();
+                    var attributeModifier = modifications.First(x => string.Equals(x.AttributeName, attributeName, StringComparison.OrdinalIgnoreCase));
+
+                    var attributeString = attributeValueBuilder.ToString();
+                    if (int.TryParse(attributeString, out var attributeValue))
+                    {
+                        var newValue = attributeValue + attributeModifier.ModifyAmount;
+                        var newValueString = newValue.ToString();
+                        var attributeStartIndex = index - attributeString.Length;
+
+                        ModifiedSvgText = ModifiedSvgText
+                            .Remove(attributeStartIndex, attributeString.Length)
+                            .Insert(attributeStartIndex, newValueString);
+
+                        //We just moved the string, adjust the index to the double-quote in the new string
+                        index = attributeStartIndex + newValueString.Length;
+                    }
+                    else
+                    {
+                        Logger.LogError($"Could not parse int value from attribute '{elementName}.{attributeName}' with string value '{attributeString}'");
+                    }
+
+                    parseState = AttributeParseState.LookingForAttributeStart;
+                    attributeNameBuilder.Clear();
+                    attributeValueBuilder.Clear();
+                }
+                else
+                {
+                    attributeValueBuilder.Append(character);
+                }
+            }
+        }
+    }
+
+    //private void MoveElement(ParsedElementInfo elementInfo)
+    //{
+    //    if (string.Equals("rect", elementInfo.ElementName, StringComparison.OrdinalIgnoreCase))
+    //    {
+    //        MoveRectangle(elementInfo);
+    //    }
+    //    else
+    //    {
+    //        Logger.Log($"Unhandled SVG XML element with name '{elementInfo.ElementName}' at index '{elementInfo.ElementStartIndex}'");
+    //    }
+    //}
+
+    private enum AttributeParseState
+    {
+        LookingForAttributeStart,
+        ParsingName,
+        ParsingValueOpenQuote,
+        ParsingValue,
+        FoundInvalidAttributeLookingForNextSpace,
     }
 
     private static string MoveElement(string searchPattern, string svgText, int moveAmount)
@@ -128,7 +316,7 @@ public class SvgMoverUtil(string SvgText, int XMove, int YMove, ISiteLogger Logg
             //}
             else
             {
-                Logger.Log($"Unhandled SVG XML element with name {element.Name.LocalName}");
+                Logger.LogError($"Unhandled SVG XML element with name {element.Name.LocalName}");
             }
         }
     }

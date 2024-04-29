@@ -20,10 +20,10 @@ public class SvgMoveUtilityTests
     [InlineData("<rect x=\"10000\"></rect>", "<rect x=\"19000\"></rect>", 9000)]
     [InlineData("<rect x=\"10\"></rect>", "<rect x=\"-90\"></rect>", -100)]
     [InlineData("<rect             x=\"10\"></rect>", "<rect             x=\"15\"></rect>", 5)]
-    [InlineData("<rect x=\"10\"></rect><circle x=\"10\"></circle>", "<rect x=\"15\"></rect><circle x=\"15\"></circle>", 5)]
+    [InlineData("<rect x=\"10\"></rect><circle cx=\"10\"></circle>", "<rect x=\"15\"></rect><circle cx=\"15\"></circle>", 5)]
     public void WhenMovingX_AssertValuesMoved(string original, string expected, int moveAmount)
     {
-        var mover = new SvgMoverUtil(original, XMove: moveAmount, YMove: 0, Logger: new SiteLogger());
+        var mover = new SvgMoverUtil(original, xMove: moveAmount, yMove: 0, logger: new ModificationLogger());
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
@@ -37,10 +37,10 @@ public class SvgMoveUtilityTests
     [InlineData("<rect y=\"10000\"></rect>", "<rect y=\"19000\"></rect>", 9000)]
     [InlineData("<rect y=\"10\"></rect>", "<rect y=\"-90\"></rect>", -100)]
     [InlineData("<rect             y=\"10\"></rect>", "<rect             y=\"15\"></rect>", 5)]
-    [InlineData("<rect y=\"10\"></rect><circle y=\"10\"></circle>", "<rect y=\"15\"></rect><circle y=\"15\"></circle>", 5)]
+    [InlineData("<rect y=\"10\"></rect><circle cy=\"10\"></circle>", "<rect y=\"15\"></rect><circle cy=\"15\"></circle>", 5)]
     public void WhenMovingY_AssertValuesMoved(string original, string expected, int moveAmount)
     {
-        var mover = new SvgMoverUtil(original, XMove: moveAmount, YMove: 0, Logger: new SiteLogger());
+        var mover = new SvgMoverUtil(original, xMove: 0, yMove: moveAmount, logger: new ModificationLogger());
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }

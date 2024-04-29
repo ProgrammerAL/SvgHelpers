@@ -31,9 +31,6 @@ public partial class Index : ComponentBase
     [Inject, NotNull]
     private IJSRuntime? JsRuntime { get; set; }
 
-    [Inject, NotNull]
-    private ISiteLogger? Logger { get; set; }
-
     private string XAmount { get; set; } = "0";
     private string YAmount { get; set; } = "0";
 
@@ -99,7 +96,8 @@ public partial class Index : ComponentBase
             yAmount = 0;
         }
 
-        var mover = new SvgMoverUtil(svgText, xAmount, yAmount, Logger);
+        var logger = new ModificationLogger();
+        var mover = new SvgMoverUtil(svgText, xAmount, yAmount, logger);
 
         return mover.MoveAllElements();
     }

@@ -1,14 +1,20 @@
 ﻿namespace ProgrammerAl.SvgMover;
 
-public interface ISiteLogger
+public interface IModificationLogger
 {
-    void Log(string message);
+    void LogInfo(string message);
+    void LogError(string message);
 }
 
-public class SiteLogger : ISiteLogger
+public class ModificationLogger : IModificationLogger
 {
-    public void Log(string message)
+    public void LogInfo(string message)
     {
-        Console.WriteLine(message);
+        Console.WriteLine($"INFO: {message}");
+    }
+
+    public void LogError(string message)
+    {
+        Console.WriteLine($"ERROR: {message}");
     }
 }
