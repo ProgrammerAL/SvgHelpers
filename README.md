@@ -1,2 +1,2 @@
-# SvgMover
-Utility site to move items in an SVG.
+# SvgHelpers
+Site with helpers for editing SVG text.

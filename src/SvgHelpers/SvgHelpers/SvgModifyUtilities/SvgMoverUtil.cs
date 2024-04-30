@@ -4,22 +4,22 @@ using System.Xml;
 using System.Xml.Linq;
 
 using Microsoft.Extensions.Primitives;
-
+using ProgrammerAl.SvgHelpers.LoggerUtils;
 using Svg;
 
-namespace ProgrammerAl.SvgMover.SvgModifyUtilities;
+namespace ProgrammerAl.SvgHelpers.SvgModifyUtilities;
 
 /// <summary>
 /// Custom logic to move elements inside an SVG string
 /// This has to use custom logic because the input string may be an invalid SVG string, for example just a partial image the user will copy/paste back into their SVG file
 /// </summary>
-public class SvgMoverUtil
+public class SvgHelpersUtil
 {
     private record AttributeModification(string AttributeName, int ModifyAmount);
 
     private readonly ImmutableDictionary<string, ImmutableArray<AttributeModification>> _simpleElementModifications;
 
-    public SvgMoverUtil(string svgText, int xMove, int yMove, IModificationLogger logger)
+    public SvgHelpersUtil(string svgText, int xMove, int yMove, IModificationLogger logger)
     {
         OriginalSvgText = svgText;
         XMove = xMove;

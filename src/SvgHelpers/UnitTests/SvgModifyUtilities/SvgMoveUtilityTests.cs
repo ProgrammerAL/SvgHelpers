@@ -1,7 +1,8 @@
 ﻿using System;
 
-using ProgrammerAl.SvgMover;
-using ProgrammerAl.SvgMover.SvgModifyUtilities;
+using ProgrammerAl.SvgHelpers;
+using ProgrammerAl.SvgHelpers.LoggerUtils;
+using ProgrammerAl.SvgHelpers.SvgModifyUtilities;
 
 using Shouldly;
 
@@ -23,7 +24,7 @@ public class SvgMoveUtilityTests
     [InlineData("<rect x=\"10\"></rect><circle cx=\"10\"></circle>", "<rect x=\"15\"></rect><circle cx=\"15\"></circle>", 5)]
     public void WhenMovingSimpleElements_X_AssertValuesMoved(string original, string expected, int moveAmount)
     {
-        var mover = new SvgMoverUtil(original, xMove: moveAmount, yMove: 0, logger: new ModificationLogger());
+        var mover = new SvgHelpersUtil(original, xMove: moveAmount, yMove: 0, logger: new ModificationLogger());
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
@@ -40,7 +41,7 @@ public class SvgMoveUtilityTests
     [InlineData("<rect y=\"10\"></rect><circle cy=\"10\"></circle>", "<rect y=\"15\"></rect><circle cy=\"15\"></circle>", 5)]
     public void WhenMovingSimpleElementsY_AssertValuesMoved(string original, string expected, int moveAmount)
     {
-        var mover = new SvgMoverUtil(original, xMove: 0, yMove: moveAmount, logger: new ModificationLogger());
+        var mover = new SvgHelpersUtil(original, xMove: 0, yMove: moveAmount, logger: new ModificationLogger());
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
@@ -49,7 +50,7 @@ public class SvgMoveUtilityTests
     [InlineData("<path d=\"M 5 10 L 20 30 V 50 H 12345 V 12 H 65 L 30 30 L 40 50 L -20 -50 H 1000 V -20\"></path>", "<path d=\"M 10 20 L 25 40 V 60 H 12350 V 22 H 70 L 35 40 L 45 60 L -15 -40 H 1005 V -10\"></path>", 5, 10)]
     public void WhenMovingPath_AssertValuesMoved(string original, string expected, int xMove, int yMove)
     {
-        var mover = new SvgMoverUtil(original, xMove: xMove, yMove: yMove, logger: new ModificationLogger());
+        var mover = new SvgHelpersUtil(original, xMove: xMove, yMove: yMove, logger: new ModificationLogger());
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }
@@ -59,7 +60,7 @@ public class SvgMoveUtilityTests
     [InlineData("<polyline points=\"0,100 55,25 -50,75 100,0\" />", "<polyline points=\"5,110 60,35 -45,85 105,10\" />", 5, 10)]
     public void WhenMovingPolyEement_AssertValuesMoved(string original, string expected, int xMove, int yMove)
     {
-        var mover = new SvgMoverUtil(original, xMove: xMove, yMove: yMove, logger: new ModificationLogger());
+        var mover = new SvgHelpersUtil(original, xMove: xMove, yMove: yMove, logger: new ModificationLogger());
         var modified = mover.MoveAllElements();
         modified.ShouldBe(expected);
     }

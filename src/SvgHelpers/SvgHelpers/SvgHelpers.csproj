@@ -5,8 +5,8 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WarningsAsErrors />
         <Nullable>enable</Nullable>
-        <AssemblyName>ProgrammerAl.SvgMover</AssemblyName>
-        <RootNamespace>ProgrammerAl.SvgMover</RootNamespace>
+        <AssemblyName>ProgrammerAl.SvgHelpers</AssemblyName>
+        <RootNamespace>ProgrammerAl.SvgHelpers</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

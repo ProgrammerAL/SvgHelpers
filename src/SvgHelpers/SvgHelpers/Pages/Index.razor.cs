@@ -10,9 +10,10 @@ using BlazorMonaco.Editor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-using ProgrammerAl.SvgMover.SvgModifyUtilities;
+using ProgrammerAl.SvgHelpers.LoggerUtils;
+using ProgrammerAl.SvgHelpers.SvgModifyUtilities;
 
-namespace ProgrammerAl.SvgMover.Pages;
+namespace ProgrammerAl.SvgHelpers.Pages;
 
 public partial class Index : ComponentBase
 {
@@ -33,6 +34,8 @@ public partial class Index : ComponentBase
 
     private string XAmount { get; set; } = "0";
     private string YAmount { get; set; } = "0";
+
+    private bool IsMoving { get; set; }
 
     private StandaloneDiffEditorConstructionOptions DiffEditorConstructionOptions(StandaloneDiffEditor editor)
     {
@@ -67,6 +70,9 @@ public partial class Index : ComponentBase
 
     private async Task MoveSvgAsync()
     {
+        IsMoving = true;
+        await InvokeAsync(StateHasChanged);
+
         var originalModel = await GetOrCreateTextModelAsync(EditorOriginalTextModel);
         var modifiedModel = await GetOrCreateTextModelAsync(EditorModifiedTextModel);
 
@@ -81,7 +87,8 @@ public partial class Index : ComponentBase
             Modified = modifiedModel
         });
 
-        StateHasChanged();
+        IsMoving = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private string MoveSvgElements(string svgText)
@@ -97,7 +104,7 @@ public partial class Index : ComponentBase
         }
 
         var logger = new ModificationLogger();
-        var mover = new SvgMoverUtil(svgText, xAmount, yAmount, logger);
+        var mover = new SvgHelpersUtil(svgText, xAmount, yAmount, logger);
 
         return mover.MoveAllElements();
     }

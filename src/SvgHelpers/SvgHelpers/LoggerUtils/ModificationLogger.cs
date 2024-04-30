@@ -1,4 +1,4 @@
-﻿namespace ProgrammerAl.SvgMover;
+﻿namespace ProgrammerAl.SvgHelpers.LoggerUtils;
 
 public interface ISiteLogger
 {

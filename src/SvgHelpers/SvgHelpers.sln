@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgMover", "SvgMover\SvgMover.csproj", "{301DE2F7-C67B-4C75-8729-E590B38CAFA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgHelpers", "SvgHelpers\SvgHelpers.csproj", "{301DE2F7-C67B-4C75-8729-E590B38CAFA5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{52D673C9-6CE0-4B6D-8C06-EB5D796B5D72}"
 EndProject

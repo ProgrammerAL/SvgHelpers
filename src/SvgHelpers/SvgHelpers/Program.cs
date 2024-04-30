@@ -6,8 +6,9 @@ using System.Text;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using ProgrammerAl.SvgMover;
+using ProgrammerAl.SvgHelpers;
 using Microsoft.AspNetCore.Components.Web;
+using ProgrammerAl.SvgHelpers.LoggerUtils;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
