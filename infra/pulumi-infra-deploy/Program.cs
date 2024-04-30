@@ -7,7 +7,6 @@ using System.Linq;
 using System.Collections.Generic;
 using ProgrammerAl.SvgHelpers.IaC.StackBuilders.Website;
 using ProgrammerAl.SvgHelpers.IaC.Config.GlobalConfigs;
-using ProgrammerAl.SvgHelpers.IaC.StackBuilders.RouteFilterWorker;
 
 return await Pulumi.Deployment.RunAsync(async () =>
 {

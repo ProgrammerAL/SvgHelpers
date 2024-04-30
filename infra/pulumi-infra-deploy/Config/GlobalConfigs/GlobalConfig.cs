@@ -33,9 +33,7 @@ public record GlobalConfig(
         return new GlobalConfig(
             DeploymentPackagesConfig: new DeploymentPackagesConfig(unzippedArtifactsDir),
             WebClientInfraConfig: config.RequireObject<WebClientInfrastructureConfigDto>("web-client-infra").GenerateValidConfigObject(),
-            CloudflareConfig: cloudflareConfig,
-            StorageApiConfig: config.RequireObject<StorageApiConfigDto>("storage-api-config").GenerateValidConfigObject(),
-            RouteFilterWorkerConfig: config.RequireObject<RouteFilterWorkerConfigDto>("route-filter-worker-config").GenerateValidConfigObject()
+            CloudflareConfig: cloudflareConfig
         );
     }
 
