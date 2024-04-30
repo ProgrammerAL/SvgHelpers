@@ -1,0 +1,48 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: Release
+      DOTNET_VERSION: 8.0.x
+      SITE_PROJECT_NAME: SvgHelpers
+      SRC_DIRECTORY_PATH: ${{ github.workspace }}/src/
+      BUILD_ARTIFACTS_PATH: ${{ github.workspace }}/build_artifacts
+      PULUMI_PROJECT_DIRECTORY: ${{ github.workspace }}/infra/pulumi-infra-deploy
+      PULUMI_PROJECT_FILE_PATH: ${{ github.workspace }}/infra/pulumi-infra-deploy/pulumi-infra-deploy.csproj
+      DYNAMIC_CONTENT_UPDATER_OUTPUT_PATH: ${{ github.workspace }}/static_content_output
+      PULUMI_STACK_NAME: prod
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.3.0
+      - name: Install Cloudflare Wrangler
+        run: npm install --location=global wrangler
+      - name: Install Pulumi
+        uses: pulumi/setup-pulumi@v2
+
+      - name: Dotnet Restore - Pulumi Project
+        run: dotnet restore ${{ env.PULUMI_PROJECT_FILE_PATH }}
+
+      - name: Cake - Build
+        run: dotnet run --project build/build/Build.csproj -- --configuration=${{ env.CONFIGURATION }} --srcDirectoryPath=${{ env.SRC_DIRECTORY_PATH }} --BuildArtifactsPath=${{ env.BUILD_ARTIFACTS_PATH }}
+
+      # - name: Cake - Deploy
+      #   run: dotnet run --project ${{ github.workspace }}/deploy/deploy/Deploy.csproj -- --configuration=${{ env.CONFIGURATION }} --PulumiStackName=${{ env.PULUMI_STACK_NAME }} --WorkspacePath=${{ github.workspace }} --BuildArtifactsPath=${{ env.BUILD_ARTIFACTS_PATH }}
+
+
