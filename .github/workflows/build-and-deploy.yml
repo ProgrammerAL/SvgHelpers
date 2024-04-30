@@ -36,8 +36,8 @@ jobs:
       - name: Install Pulumi
         uses: pulumi/setup-pulumi@v2
 
-      # - name: Dotnet Restore - Pulumi Project
-      #   run: dotnet restore ${{ env.PULUMI_PROJECT_FILE_PATH }}
+      - name: Dotnet Restore - Pulumi Project
+        run: dotnet restore ${{ env.PULUMI_PROJECT_FILE_PATH }}
 
       - name: Cake - Build
         run: dotnet run --project build/build/Build.csproj -- --configuration=${{ env.CONFIGURATION }} --srcDirectoryPath=${{ env.SRC_DIRECTORY_PATH }} --BuildArtifactsPath=${{ env.BUILD_ARTIFACTS_PATH }}
