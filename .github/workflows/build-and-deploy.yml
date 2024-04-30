@@ -42,7 +42,7 @@ jobs:
       - name: Cake - Build
         run: dotnet run --project build/build/Build.csproj -- --configuration=${{ env.CONFIGURATION }} --srcDirectoryPath=${{ env.SRC_DIRECTORY_PATH }} --BuildArtifactsPath=${{ env.BUILD_ARTIFACTS_PATH }}
 
-      # - name: Cake - Deploy
-      #   run: dotnet run --project ${{ github.workspace }}/deploy/deploy/Deploy.csproj -- --configuration=${{ env.CONFIGURATION }} --PulumiStackName=${{ env.PULUMI_STACK_NAME }} --WorkspacePath=${{ github.workspace }} --BuildArtifactsPath=${{ env.BUILD_ARTIFACTS_PATH }}
+      - name: Cake - Deploy
+        run: dotnet run --project ${{ github.workspace }}/deploy/deploy/Deploy.csproj -- --configuration=${{ env.CONFIGURATION }} --PulumiStackName=${{ env.PULUMI_STACK_NAME }} --WorkspacePath=${{ github.workspace }} --BuildArtifactsPath=${{ env.BUILD_ARTIFACTS_PATH }}
 
 
