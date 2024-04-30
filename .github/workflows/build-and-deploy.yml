@@ -36,7 +36,7 @@ jobs:
       - name: Log in to Azure CLI so the Pulumi run can get Key Vault Secrets
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_GITHUB_ACTIONS_PROGRAMMERAL_SITE }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_GITHUB_ACTIONS_SVGHELPERS_SITE }}
       - name: Install Pulumi
         uses: pulumi/setup-pulumi@v2
 
