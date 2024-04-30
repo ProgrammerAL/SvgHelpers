@@ -1,0 +1,3 @@
+name: programmeral-site
+runtime: dotnet
+description: Manages cloud services for running ProgrammerAL.com
