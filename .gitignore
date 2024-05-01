@@ -261,7 +261,7 @@ paket-files/
 __pycache__/
 *.pyc
 
-**/SvgMover/dist
-**/SvgMover/wwwroot/sitemap.xml
+**/dist
+**/wwwroot/sitemap.xml
 
-**/SvgMover/wwwroot/css/custom-modules/*.css
+**/wwwroot/css/custom-modules/*.css
