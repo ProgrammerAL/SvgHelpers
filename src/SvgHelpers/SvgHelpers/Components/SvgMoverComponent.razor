@@ -1,0 +1,37 @@
+﻿@using BlazorMonaco.Editor
+@using ProgrammerAl.SvgHelpers.Components.AnimatedComponents
+
+<div class="flex flex-col gap-4 m-5 @(IsMoving ? "disabled" : "")">
+    <div class="flex gap-2">
+        <p class="mt-2">X:</p>
+        <input id="xInput" type="number" @bind=XAmount
+               class="border border-black min-w-16 py-2 px-4" />
+    </div>
+    <div class="flex gap-2">
+        <p class="mt-2">Y:</p>
+        <input id="xInput" type="number" @bind=YAmount
+               class="border border-black min-w-16 py-2 px-4" />
+    </div>
+
+    <button type="button" @onclick=MoveSvgAsync
+            class="border border-black bg-green-800 min-h-12 text-gray-200">
+        Modify Elements
+    </button>
+</div>
+
+<div class="flex flex-row justify-between px-4">
+    <p class="text-lg font-semibold">Original</p>
+    <p class="text-lg font-semibold">Modified</p>
+</div>
+
+@if (IsMoving)
+{
+    <GreenSpinnerComponent TailwindCssHeightClass="h-24" TailwindCssWidthClass="w-24" />
+}
+else
+{
+    <StandaloneDiffEditor @ref="_diffEditor"
+                          Id="diff-editor"
+                          ConstructionOptions="DiffEditorConstructionOptions"
+                          OnDidInit="EditorOnDidInit" />
+}

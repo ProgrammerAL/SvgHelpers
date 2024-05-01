@@ -1,0 +1,43 @@
+﻿<CascadingValue Value="this">
+    <div class="btn-group" role="group">
+        @foreach (var tabPage in Pages)
+        {
+            <button type="button"
+                    class="border p-2 @(tabPage == ActivePage ? ActivePageTabCss : InactivePageTabCss)"
+            @onclick=@(() => ActivatePage(tabPage))>
+                @tabPage.Title
+            </button>
+        }
+    </div>
+    <div class="border m-2 p-4">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private const string ActivePageTabCss = "border-2 text-lg";
+    private const string InactivePageTabCss = "text-base";
+
+    // Next line is needed so we are able to add <TabPage> components inside
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    public TabPageComponent? ActivePage { get; set; }
+    private List<TabPageComponent> Pages = new List<TabPageComponent>();
+
+    public void AddPage(TabPageComponent tabPage)
+    {
+        Pages.Add(tabPage);
+        if (Pages.Count == 1)
+        {
+            ActivePage = tabPage;
+        }
+
+        StateHasChanged();
+    }
+
+    private void ActivatePage(TabPageComponent page)
+    {
+        ActivePage = page;
+    }
+}
