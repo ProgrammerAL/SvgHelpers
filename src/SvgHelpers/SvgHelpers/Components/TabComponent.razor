@@ -1,14 +1,17 @@
 ﻿<CascadingValue Value="this">
-    <div class="btn-group" role="group">
-        @foreach (var tabPage in Pages)
-        {
-            <button type="button"
-                    class="border p-2 @(tabPage == ActivePage ? ActivePageTabCss : InactivePageTabCss)"
-            @onclick=@(() => ActivatePage(tabPage))>
-                @tabPage.Title
-            </button>
-        }
-    </div>
+    @if (Pages.Count > 1)
+    {
+        <div class="btn-group" role="group">
+            @foreach (var tabPage in Pages)
+            {
+                <button type="button"
+                        class="border p-2 @(tabPage == ActivePage ? ActivePageTabCss : InactivePageTabCss)"
+                        @onclick=@(() => ActivatePage(tabPage))>
+                    @tabPage.Title
+                </button>
+            }
+        </div>
+    }
     <div class="border m-2 p-4">
         @ChildContent
     </div>
@@ -30,7 +33,7 @@
         Pages.Add(tabPage);
         if (Pages.Count == 1)
         {
-            ActivePage = tabPage;
+            ActivatePage(tabPage);
         }
 
         StateHasChanged();
