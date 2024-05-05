@@ -22,9 +22,7 @@ public partial class SvgMoverComponent : ComponentBase
 
     private const string DefaultSvgText =
 """
-<svg xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
-</svg>
+<rect x="1" y="1"></rect>
 """;
 
     private StandaloneDiffEditor _diffEditor = null!;
@@ -34,8 +32,6 @@ public partial class SvgMoverComponent : ComponentBase
 
     private string XAmount { get; set; } = "0";
     private string YAmount { get; set; } = "0";
-
-    private bool IsMoving { get; set; }
 
     private StandaloneDiffEditorConstructionOptions DiffEditorConstructionOptions(StandaloneDiffEditor editor)
     {
@@ -68,11 +64,20 @@ public partial class SvgMoverComponent : ComponentBase
         return textValue;
     }
 
-    private async Task MoveSvgAsync()
+    private async void HandleXAmountChangedAsync(ChangeEventArgs e)
     {
-        IsMoving = true;
-        await InvokeAsync(StateHasChanged);
+        XAmount = e.Value?.ToString() ?? "0";
+        await HandleInputChangedAsync();
+    }
 
+    private async void HandleYAmountChangedAsync(ChangeEventArgs e)
+    {
+        YAmount = e.Value?.ToString() ?? "0";
+        await HandleInputChangedAsync();
+    }
+
+    private async Task HandleInputChangedAsync()
+    {
         var originalModel = await GetOrCreateTextModelAsync(EditorOriginalTextModel);
         var modifiedModel = await GetOrCreateTextModelAsync(EditorModifiedTextModel);
 
@@ -86,19 +91,16 @@ public partial class SvgMoverComponent : ComponentBase
             Original = originalModel,
             Modified = modifiedModel
         });
-
-        IsMoving = false;
-        await InvokeAsync(StateHasChanged);
     }
 
     private string MoveSvgElements(string svgText)
     {
-        if (!int.TryParse(XAmount, out int xAmount))
+        if (!long.TryParse(XAmount, out var xAmount))
         {
             xAmount = 0;
         }
 
-        if (!int.TryParse(YAmount, out int yAmount))
+        if (!long.TryParse(YAmount, out var yAmount))
         {
             yAmount = 0;
         }

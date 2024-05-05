@@ -5,7 +5,7 @@
             @foreach (var tabPage in Pages)
             {
                 <button type="button"
-                        class="border p-2 @(tabPage == ActivePage ? ActivePageTabCss : InactivePageTabCss)"
+                        class="border @(tabPage == ActivePage ? ActivePageTabCss : InactivePageTabCss)"
                         @onclick=@(() => ActivatePage(tabPage))>
                     @tabPage.Title
                 </button>
@@ -18,8 +18,8 @@
 </CascadingValue>
 
 @code {
-    private const string ActivePageTabCss = "border-2 text-lg";
-    private const string InactivePageTabCss = "text-base";
+    private const string ActivePageTabCss = "p-4 border-4 text-xl";
+    private const string InactivePageTabCss = "p-2 text-base";
 
     // Next line is needed so we are able to add <TabPage> components inside
     [Parameter]

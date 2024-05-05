@@ -15,11 +15,11 @@ namespace ProgrammerAl.SvgHelpers.SvgModifyUtilities;
 /// </summary>
 public class SvgHelpersUtil
 {
-    private record AttributeModification(string AttributeName, int ModifyAmount);
+    private record AttributeModification(string AttributeName, long ModifyAmount);
 
     private readonly ImmutableDictionary<string, ImmutableArray<AttributeModification>> _simpleElementModifications;
 
-    public SvgHelpersUtil(string svgText, int xMove, int yMove, IModificationLogger logger)
+    public SvgHelpersUtil(string svgText, long xMove, long yMove, IModificationLogger logger)
     {
         OriginalSvgText = svgText;
         XMove = xMove;
@@ -76,8 +76,8 @@ public class SvgHelpersUtil
     }
 
     public string OriginalSvgText { get; }
-    public int XMove { get; }
-    public int YMove { get; }
+    public long XMove { get; }
+    public long YMove { get; }
     public IModificationLogger Logger { get; }
 
     public string ModifiedSvgText { get; private set; } = string.Empty;

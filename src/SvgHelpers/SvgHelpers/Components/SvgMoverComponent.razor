@@ -1,37 +1,38 @@
 ﻿@using BlazorMonaco.Editor
 @using ProgrammerAl.SvgHelpers.Components.AnimatedComponents
 
-<div class="flex flex-col gap-4 m-5 @(IsMoving ? "disabled" : "")">
-    <div class="flex gap-2">
-        <p class="mt-2">X:</p>
-        <input id="xInput" type="number" @bind=XAmount
-               class="border border-black min-w-16 py-2 px-4" />
+<div class="flex flex-col gap-2">
+
+    <p class="text-sm">Move the X and Y coordinates of all elements in the given SVG. The XML provided can be a portion of the entire SVG, not the entire image.</p>
+
+    <div class="flex flex-row gap-12">
+        <div class="flex gap-2">
+            <p class="mt-2">X:</p>
+            <input id="xInput" type="number"
+                   @bind-value=XAmount
+                   @bind-value:event="onchange"
+                   @oninput=HandleXAmountChangedAsync
+                   class="border border-black min-w-16 py-2 px-4" />
+        </div>
+        <div class="flex gap-2">
+            <p class="mt-2">Y:</p>
+            <input id="yInput"
+                   type="number"
+                   @bind-value=YAmount
+                   @bind-value:event="onchange"
+                   @oninput=HandleYAmountChangedAsync
+                   class="border border-black min-w-16 py-2 px-4" />
+        </div>
     </div>
-    <div class="flex gap-2">
-        <p class="mt-2">Y:</p>
-        <input id="yInput" type="number" @bind=YAmount
-               class="border border-black min-w-16 py-2 px-4" />
+
+    <div class="flex flex-row justify-between px-4 mt-4">
+        <p class="text-lg font-semibold">Original</p>
+        <p class="text-lg font-semibold">Modified</p>
     </div>
 
-    <button type="button" @onclick=MoveSvgAsync
-            class="border border-black bg-green-800 min-h-12 text-gray-200">
-        Modify Elements
-    </button>
-</div>
-
-<div class="flex flex-row justify-between px-4">
-    <p class="text-lg font-semibold">Original</p>
-    <p class="text-lg font-semibold">Modified</p>
-</div>
-
-@if (IsMoving)
-{
-    <GreenSpinnerComponent TailwindCssHeightClass="h-24" TailwindCssWidthClass="w-24" />
-}
-else
-{
     <StandaloneDiffEditor @ref="_diffEditor"
                           Id="diff-editor"
                           ConstructionOptions="DiffEditorConstructionOptions"
                           OnDidInit="EditorOnDidInit" />
-}
+
+</div>
