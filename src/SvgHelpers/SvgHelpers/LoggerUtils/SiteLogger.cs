@@ -1,20 +1,14 @@
 ﻿namespace ProgrammerAl.SvgHelpers.LoggerUtils;
 
-public interface IModificationLogger
+public interface ISiteLogger
 {
-    void LogInfo(string message);
-    void LogError(string message);
+    void Log(string message);
 }
 
-public class ModificationLogger : IModificationLogger
+public class SiteLogger : ISiteLogger
 {
-    public void LogInfo(string message)
+    public void Log(string message)
     {
-        Console.WriteLine($"INFO: {message}");
-    }
-
-    public void LogError(string message)
-    {
-        Console.WriteLine($"ERROR: {message}");
+        Console.WriteLine(message);
     }
 }

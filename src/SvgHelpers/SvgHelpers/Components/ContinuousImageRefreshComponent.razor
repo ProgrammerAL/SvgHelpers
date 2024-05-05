@@ -1,0 +1,19 @@
+﻿@using BlazorMonaco.Editor
+@using ProgrammerAl.SvgHelpers.Components.AnimatedComponents
+
+<div class="flex">
+    <button onclick=@(async () => await HandleOpenFileAsync())>
+        Choose File
+    </button>
+</div>
+
+
+@if (!string.IsNullOrWhiteSpace(SvgHtml.Value))
+{
+    <div>
+        <p>Last updated: @(LastImageRefreshTime)</p>
+        <div class="border border-4">
+            @SvgHtml
+        </div>
+    </div>
+}
