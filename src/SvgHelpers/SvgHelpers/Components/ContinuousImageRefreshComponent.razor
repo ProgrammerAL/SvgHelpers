@@ -2,7 +2,8 @@
 @using ProgrammerAl.SvgHelpers.Components.AnimatedComponents
 
 <div class="flex">
-    <button onclick=@(async () => await HandleOpenFileAsync())>
+    <button onclick=@(async () => await HandleOpenFileAsync())
+            class="border border-black bg-green-800 min-h-12 text-gray-200 p-2">
         Choose File
     </button>
 </div>
