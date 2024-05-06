@@ -1,20 +1,23 @@
 ﻿@using BlazorMonaco.Editor
 @using ProgrammerAl.SvgHelpers.Components.AnimatedComponents
 
-<div class="flex">
-    <button onclick=@(async () => await HandleOpenFileAsync())
-            class="border border-black bg-green-800 min-h-12 text-gray-200 p-2">
-        Choose File
-    </button>
-</div>
+<div class="flex flex-col gap-2">
+    <p class="text-sm">Continuously refreshes the image displayed here from your local device. You can edit it in one program, and have this screen open somwehre else to quickly see the changes.</p>
 
-
-@if (!string.IsNullOrWhiteSpace(SvgHtml.Value))
-{
-    <div>
-        <p>Last updated: @(LastImageRefreshTime)</p>
-        <div class="border border-4">
-            @SvgHtml
-        </div>
+    <div class="flex">
+        <button onclick=@(async () => await HandleOpenFileAsync())
+                class="border border-black bg-green-800 min-h-12 text-gray-200 p-2">
+            Choose File
+        </button>
     </div>
-}
+
+    @if (HasImage)
+    {
+        <div>
+            <p>Last updated: @(LastImageRefreshTime)</p>
+            <div class="border border-4">
+                @SvgHtml
+            </div>
+        </div>
+    }
+</div>

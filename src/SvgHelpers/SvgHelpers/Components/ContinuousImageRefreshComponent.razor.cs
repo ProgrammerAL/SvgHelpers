@@ -19,6 +19,8 @@ public partial class ContinuousImageRefreshComponent : ComponentBase
     private DateTime LastImageRefreshTime { get; set; } = DateTime.MinValue;
     private MarkupString SvgHtml { get; set; }
 
+    private bool HasImage => !string.IsNullOrWhiteSpace(SvgHtml.Value);
+
     [Inject, NotNull]
     private IJSRuntime? JSRuntime { get; set; }
 
