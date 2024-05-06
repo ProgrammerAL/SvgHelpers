@@ -76,6 +76,11 @@ public partial class SvgMoverComponent : ComponentBase
         await HandleInputChangedAsync();
     }
 
+    private async Task HandleOriginalContentChangedAsync(ModelContentChangedEvent e)
+    {
+        await HandleInputChangedAsync();
+    }
+
     private async Task HandleInputChangedAsync()
     {
         var originalModel = await GetOrCreateTextModelAsync(EditorOriginalTextModel);

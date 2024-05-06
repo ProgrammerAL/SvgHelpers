@@ -33,6 +33,8 @@
     <StandaloneDiffEditor @ref="_diffEditor"
                           Id="diff-editor"
                           ConstructionOptions="DiffEditorConstructionOptions"
-                          OnDidInit="EditorOnDidInit" />
+                          OnDidInit="EditorOnDidInit"
+                          OnDidChangeModelContentOriginal="HandleOriginalContentChangedAsync"
+                          />
 
 </div>
