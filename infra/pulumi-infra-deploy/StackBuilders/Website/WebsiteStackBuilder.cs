@@ -139,8 +139,8 @@ public record WebsiteStackBuilder(GlobalConfig GlobalConfig)
 
         var record = new Cloudflare.Record("website-cname", new Cloudflare.RecordArgs
         {
-            Name = pagesDomainEndpoint,
-            Value = webClientInfra.PagesProject.Subdomain,
+            Name = GlobalConfig.WebClientInfraConfig.RootDomain,
+            Content = webClientInfra.PagesProject.Subdomain,
             ZoneId = GlobalConfig.WebClientInfraConfig.CloudflareZoneId,
             Proxied = true,
             AllowOverwrite = true,

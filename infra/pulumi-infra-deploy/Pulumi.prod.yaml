@@ -4,6 +4,7 @@ config:
   svghelpers-site:cloudflare-account-id: 25a96b543306c9c9b27e5e04ff7b00b6
   svghelpers-site:root-run-path: local
   svghelpers-site:web-client-infra:
-    RootDomain: SvgHelpers.com
-    CloudflareZoneId: 5cb93fc38a6bbfe26b832af194e8f6b2
+    RootDomain: ProgrammerAL.com
+    Subdomain: SvgHelpers
+    CloudflareZoneId: cb6b4ef0a57ef72147e4c9bf3c16b532
   pulumi:template: azure-csharp
