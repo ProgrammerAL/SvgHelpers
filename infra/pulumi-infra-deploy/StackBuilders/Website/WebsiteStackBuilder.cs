@@ -137,10 +137,26 @@ public record WebsiteStackBuilder(GlobalConfig GlobalConfig)
             Provider = provider
         });
 
+        //var record = new Cloudflare.Record("website-cname", new Cloudflare.RecordArgs
+        //{
+        //    Name = GlobalConfig.WebClientInfraConfig.RootDomain,
+        //    Content = webClientInfra.PagesProject.Subdomain,
+        //    ZoneId = GlobalConfig.WebClientInfraConfig.CloudflareZoneId,
+        //    Proxied = true,
+        //    AllowOverwrite = true,
+        //    Type = "CNAME",
+        //    Ttl = 1,//Has to be set to 1 because this is proxied
+        //}, new CustomResourceOptions
+        //{
+        //    Provider = provider,
+        //    //Need to register the Pages Domain before making the CNAME record, otherwise it will fail
+        //    DependsOn = new[] { pagesDomain }
+        //});
+
         var record = new Cloudflare.Record("website-cname", new Cloudflare.RecordArgs
         {
-            Name = GlobalConfig.WebClientInfraConfig.RootDomain,
-            Content = webClientInfra.PagesProject.Subdomain,
+            Name = "svghelpers",
+            Content = webClientInfra.PagesProject.Domains.Apply(x => x.First()),
             ZoneId = GlobalConfig.WebClientInfraConfig.CloudflareZoneId,
             Proxied = true,
             AllowOverwrite = true,
