@@ -33,7 +33,7 @@ public record WebsiteStackBuilder(GlobalConfig GlobalConfig)
     private CloudflarePagesApp UploadWebClientFiles(
         Cloudflare.Provider provider)
     {
-        var projectName = $"svghelpers-site-{GlobalConfig.WebClientInfraConfig.Subdomain ?? "prod"}";
+        var projectName = $"svghelpers-site-prod";
         var pagesApp = new Cloudflare.PagesProject(projectName, new Cloudflare.PagesProjectArgs
         {
             Name = projectName,
