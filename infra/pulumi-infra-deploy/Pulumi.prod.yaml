@@ -5,6 +5,6 @@ config:
   svghelpers-site:root-run-path: local
   svghelpers-site:web-client-infra:
     RootDomain: programmeral.com
-    Subdomain: svghelpers
+    Subdomain: svg-utils
     CloudflareZoneId: cb6b4ef0a57ef72147e4c9bf3c16b532
   pulumi:template: azure-csharp
