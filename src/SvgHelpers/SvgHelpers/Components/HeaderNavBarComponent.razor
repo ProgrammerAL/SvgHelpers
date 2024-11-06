@@ -1,0 +1,31 @@
+﻿<nav class="px-2">
+    <div class="container mx-auto flex flex-col md:flex-row gap-4 md:gap-0 items-center justify-between">
+        <div class="flex place-self-end block text-center text-green-700 self-end font-semibold">
+        </div>
+
+        <div class="w-auto place-self-end grid grid-cols-4 place-items-center items-center gap-2 md:gap-4">
+            <button onclick="@(() => ToggleAboutVisibility())"
+               class="text-green-700 hover:text-green-800 active:text-green-600 focus:text-green-900
+                       text-sm lg:text-lg font-semibold
+                       block text-center
+                       border-none hover:bg-transparent border-0
+                       col-start-3
+                       px-2">About</button>
+
+            <a href="https://ProgrammerAL.com"
+               class="text-green-700 hover:text-green-800 active:text-green-600 focus:text-green-900
+                       text-sm lg:text-lg font-semibold
+                       block text-center
+                       border-none hover:bg-transparent border-0
+                       col-start-4
+                       px-2">ProgrammerAL.com</a>
+        </div>
+    </div>
+
+    @if (IsAboutVisibile)
+    {
+        <AboutComponent />
+    }
+
+    <div class="border-green-700 border-b-4 border-solid w-full mt-2 mx-auto"></div>
+</nav>
