@@ -5,13 +5,16 @@
     "scripts": {
         "publish": "npm install && npm run build-prod",
         "build": "npm run build-prod",
-        "build-prod": "npx tailwindcss -i src/input.css -o ../../SvgHelpers/wwwroot/css/custom-modules/tailwindcss.css --minify",
-        "build-dev": "npx tailwindcss -i src/input.css -o ../../SvgHelpers/wwwroot/css/custom-modules/tailwindcss.css",
-        "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+        "build-prod": "npx @tailwindcss/cli -i src/input.css -o ../../SvgHelpers/wwwroot/css/custom-modules/tailwindcss.css --minify",
+        "build-dev": "npm --yes install && npx @tailwindcss/cli -i src/input.css -o ../../SvgHelpers/wwwroot/css/custom-modules/tailwindcss.css",
+        "format": "prettier --@tailwindcss/cli  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
         "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
     },
     "author": "Al Rodriguez",
     "devDependencies": {
-        "tailwindcss": "^3.2.4"
+        "tailwindcss": "^4.1.4"
+    },
+    "dependencies": {
+        "tailwind": "file:"
     }
 }

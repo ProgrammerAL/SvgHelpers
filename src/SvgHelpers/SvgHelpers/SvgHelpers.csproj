@@ -1,27 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <WarningsAsErrors />
-        <Nullable>enable</Nullable>
-        <AssemblyName>ProgrammerAl.SvgHelpers</AssemblyName>
-        <RootNamespace>ProgrammerAl.SvgHelpers</RootNamespace>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="BlazorMonaco" Version="3.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.4" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.4" PrivateAssets="all" />
-        <PackageReference Include="Svg" Version="3.4.7" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="wwwroot\css\custom-modules\" />
-    </ItemGroup>
-
-    <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)'=='DEBUG'">
-        <Exec Command="npm run build-dev --prefix $(ProjectDir)/../CustomNpmModules/tailwind" />
-    </Target>
-
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <Nullable>enable</Nullable>
+    <AssemblyName>ProgrammerAl.SvgHelpers</AssemblyName>
+    <RootNamespace>ProgrammerAl.SvgHelpers</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BlazorMonaco" Version="3.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.4" PrivateAssets="all" />
+    <PackageReference Include="Svg" Version="3.4.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\css\custom-modules\" />
+  </ItemGroup>
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)'=='DEBUG'">
+    <Exec Command="npm run build-dev --prefix $(ProjectDir)/../CustomNpmModules/tailwind" />
+  </Target>
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
 </Project>

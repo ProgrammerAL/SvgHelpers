@@ -14,5 +14,6 @@ public record WebsiteInfrastructure(
     public record DomainsInfrastructure(
         Pulumi.Cloudflare.Record DomainRecord,
         Pulumi.Cloudflare.PagesDomain PagesDomain,
-        Output<string> FullEndpoint);}
+        Output<string> FullEndpoint);
+}
 

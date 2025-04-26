@@ -26,7 +26,7 @@ public class CloudflareConfigDto : ConfigDtoBase<CloudflareConfig>
         if (ApiToken != null
             && !string.IsNullOrWhiteSpace(AccountId))
         {
-            return new CloudflareConfig(ApiToken, AccountId);
+            return new CloudflareConfig((Output<string>)ApiToken, AccountId);
         }
 
         throw new Exception($"{GetType().Name} has invalid config");

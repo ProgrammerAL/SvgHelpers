@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CONFIGURATION: Release
-      DOTNET_VERSION: 8.0.x
+      DOTNET_VERSION: 9.0.x
       SRC_DIRECTORY_PATH: ${{ github.workspace }}/src/
       BUILD_ARTIFACTS_PATH: ${{ github.workspace }}/build_artifacts
       PULUMI_PROJECT_FILE_PATH: ${{ github.workspace }}/infra/pulumi-infra-deploy/pulumi-infra-deploy.csproj
